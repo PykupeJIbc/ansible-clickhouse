@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+{{ ansible_managed | comment('xml') }} 
+<clickhouse>
+  <keeper_server>
+    <tcp_port>{{ keeper_server_port }}</tcp_port>
+{% for server in keeper_servers %}
+{% if server.item(hostname) == ansible_hostname %}
+    <server_id>{{ server.item(id) }}</server_id>
+{% endif %}
+{% endfor %}
+    <log_storage_path>/var/lib/clickhouse/coordination/log</log_storage_path>
+    <snapshot_storage_path>/var/lib/clickhouse/coordination/snapshots</snapshot_storage_path>
+
+    <coordination_settings>
+        <operation_timeout_ms>10000</operation_timeout_ms>
+        <session_timeout_ms>30000</session_timeout_ms>
+        <raft_logs_level>trace</raft_logs_level>
+    </coordination_settings>
+
+    <raft_configuration>
+{% for server in keeper_servers %}
+        <server>
+{% for key, value in server.items() %}
+            <{{ key }}>{{ value }}</{{ key }}>
+{% endfor %}
+        </server>
+{% enfor %}
+    </raft_configuration>
+</keeper_server>
+</clickhouse>
